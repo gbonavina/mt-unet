@@ -63,6 +63,9 @@ class CNN(nn.Module):
         optimizer = torch.optim.Adam(self.parameters(), lr=lr, weight_decay=weight_decay)
         criterion = nn.CrossEntropyLoss()
 
+        best_val_loss = float('inf')
+        best_model = None
+
         history = {
             'train_loss': [],
             'train_accuracy': [],
@@ -109,13 +112,20 @@ class CNN(nn.Module):
             history['val_loss'].append(val_loss)
             history['val_accuracy'].append(val_accuracy)
 
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                best_model = self.state_dict()
+
+                # save the state_dict on the model folder
+                torch.save(best_model, 'best_ela_model.pth')
+
             print(
                 f'Epoch {epoch + 1}/{epochs}, '
                 f'Train Loss: {train_loss:.4f}, Train Accuracy: {train_accuracy:.4f}, '
                 f'Val Loss: {val_loss:.4f}, Val Accuracy: {val_accuracy:.4f}'
             )
 
-        return history
+        return history, best_model
 
     def predict(self, images, device=None):
         device = _resolve_device(device)
